@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Express Vegetarian — Menu</title>
+<style>
+  :root {
+    --bg: #fdfbf7;
+    --card: #ffffff;
+    --text: #23281f;
+    --muted: #6b7265;
+    --line: #e4e0d6;
+    --green: #2f6b3a;
+    --green-dark: #24522d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { margin: 0 0 4px; font-size: 26px; color: var(--green); }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  h2 { font-size: 18px; margin: 28px 0 12px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .item:first-child { padding-top: 0; }
+  .item strong { display: block; font-weight: 600; }
+  .item small { color: var(--muted); }
+  .price { font-weight: 600; white-space: nowrap; }
+  label { display: block; font-size: 14px; margin: 12px 0 4px; }
+  input, select {
+    width: 100%;
+    padding: 10px;
+    font: inherit;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: inherit;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+  .check input { width: auto; }
+  .check label { margin: 0; }
+  button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: var(--green);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--green-dark); }
+  button:disabled { opacity: .6; cursor: default; }
+  .msg { margin-top: 12px; font-size: 14px; }
+  .msg.ok { color: var(--green); }
+  .msg.err { color: #b3261e; }
+  .empty { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Express Vegetarian</h1>
+    <p>À la carte menu</p>
+  </header>
+
+  <h2>Available items</h2>
+  <div class="card" id="menu"><p class="empty">Loading…</p></div>
+
+  <h2>Add an item</h2>
+  <div class="card">
+    <form id="form">
+      <label for="name">Name</label>
+      <input id="name" name="name" required placeholder="Veg Manchurian">
+
+      <div class="row">
+        <div>
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option>Starter</option>
+            <option>Main Course</option>
+            <option>Dessert</option>
+          </select>
+        </div>
+        <div>
+          <label for="price">Price (₹)</label>
+          <input id="price" name="price" type="number" min="0" step="1" required placeholder="210">
+        </div>
+      </div>
+
+      <div class="check">
+        <input id="available" name="available" type="checkbox" checked>
+        <label for="available">Available</label>
+      </div>
+
+      <button type="submit">Add to menu</button>
+      <p class="msg" id="msg"></p>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  const menuBox = document.getElementById('menu');
+  const form = document.getElementById('form');
+  const msg = document.getElementById('msg');
+
+  function rupees(n) {
+    return '₹' + Number(n).toFixed(2);
+  }
+
+  // GET /api/menu
+  async function loadMenu() {
+    menuBox.innerHTML = '<p class="empty">Loading…</p>';
+    try {
+      const res = await fetch('/api/menu');
+      const data = await res.json();
+
+      if (!res.ok) {
+        menuBox.innerHTML = '<p class="empty">Error: ' + (data.error || res.status) + '</p>';
+        return;
+      }
+      if (!data.length) {
+        menuBox.innerHTML = '<p class="empty">No items on the menu yet.</p>';
+        return;
+      }
+
+      menuBox.innerHTML = data.map(function (item) {
+        return '<div class="item">' +
+                 '<div><strong></strong><small></small></div>' +
+                 '<span class="price"></span>' +
+               '</div>';
+      }).join('');
+
+      // fill text via textContent so item names can't inject HTML
+      data.forEach(function (item, i) {
+        const row = menuBox.children[i];
+        row.querySelector('strong').textContent = item.name;
+        row.querySelector('small').textContent = item.category;
+        row.querySelector('.price').textContent = rupees(item.price);
+      });
+    } catch (e) {
+      menuBox.innerHTML = '<p class="empty">Could not reach the API.</p>';
+    }
+  }
+
+  // POST /api/menu
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true;
+    msg.className = 'msg';
+    msg.textContent = 'Saving…';
+
+    try {
+      const res = await fetch('/api/menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.value.trim(),
+          category: form.category.value,
+          price: form.price.value,
+          available: form.available.checked
+        })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        msg.className = 'msg err';
+        msg.textContent = data.error || ('Request failed (' + res.status + ')');
+      } else {
+        msg.className = 'msg ok';
+        msg.textContent = 'Added "' + data.name + '".';
+        form.reset();
+        form.available.checked = true;
+        loadMenu();
+      }
+    } catch (e) {
+      msg.className = 'msg err';
+      msg.textContent = 'Could not reach the API.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  loadMenu();
+</script>
+</body>
+</html>

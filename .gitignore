@@ -1,0 +1,7 @@
+node_modules/
+.vercel/
+
+# Never commit real keys — only .env.example belongs in git
+.env
+.env.*
+!.env.example
