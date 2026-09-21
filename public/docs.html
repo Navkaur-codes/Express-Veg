@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Express Vegetarian — API docs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css">
+<style>
+  body { margin: 0; background: #fdfbf7; }
+  .topbar { display: none; }           /* hides Swagger's URL bar */
+  .bar {
+    padding: 14px 16px;
+    background: #2f6b3a;
+    color: #fff;
+    font: 600 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .bar a { color: #d8ecd9; font-weight: 400; font-size: 14px; margin-left: 12px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  Express Vegetarian — API
+  <a href="/">back to the menu page</a>
+</div>
+
+<div id="swagger"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js"></script>
+<script>
+  window.ui = SwaggerUIBundle({
+    url: '/openapi.json',
+    dom_id: '#swagger',
+    // Calls go to whatever host is serving this page, so "Try it out"
+    // works locally and on Vercel with no extra config.
+    docExpansion: 'list',
+    defaultModelsExpandDepth: -1,
+    tryItOutEnabled: true
+  });
+</script>
+</body>
+</html>

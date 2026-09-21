@@ -1,0 +1,122 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Express Vegetarian — Menu API",
+    "version": "1.0.0",
+    "description": "À la carte menu items, stored in Supabase."
+  },
+  "paths": {
+    "/api/menu": {
+      "get": {
+        "summary": "List available menu items",
+        "description": "Returns every item where available = true, ordered by category.",
+        "responses": {
+          "200": {
+            "description": "The available menu items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/MenuItem" }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Supabase not configured, or a database error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a menu item",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NewMenuItem" },
+              "example": {
+                "name": "Veg Manchurian",
+                "category": "Starter",
+                "price": 210,
+                "available": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created item",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MenuItem" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing name, category or price, or price is not a number",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "name, category and price are required" }
+              }
+            }
+          },
+          "500": {
+            "description": "Supabase not configured, or a database error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "readOnly": true },
+          "name": { "type": "string", "example": "Paneer Tikka" },
+          "category": { "type": "string", "example": "Starter" },
+          "price": { "type": "number", "format": "float", "example": 220 },
+          "available": { "type": "boolean", "example": true },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "NewMenuItem": {
+        "type": "object",
+        "required": ["name", "category", "price"],
+        "properties": {
+          "name": { "type": "string", "example": "Veg Manchurian" },
+          "category": {
+            "type": "string",
+            "enum": ["Starter", "Main Course", "Dessert"],
+            "example": "Starter"
+          },
+          "price": { "type": "number", "example": 210 },
+          "available": {
+            "type": "boolean",
+            "default": true,
+            "description": "Defaults to true when omitted."
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": { "error": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -5,9 +5,17 @@ A one-page site plus a Vercel serverless API for the à la carte menu.
 ```
 api/menu.js               GET + POST handler
 public/index.html         the page that calls them
+public/docs.html          Swagger UI, at /docs.html
+public/openapi.json       the spec Swagger UI reads
 supabase/menu_items.sql   table + sample rows
 .env.example              which env vars you need
 ```
+
+## Swagger UI
+
+Once the site is running, open `/docs.html`. Both endpoints are listed with
+their request and response shapes, and **Try it out** sends real requests to
+`/api/menu` — a POST there really does add a row.
 
 ## 1. Supabase
 
